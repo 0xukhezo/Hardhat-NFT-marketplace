@@ -2,21 +2,33 @@
 pragma solidity ^0.8.8;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 error NftMarketplace__PriceMustBeAboveZero();
 error NftMarketplace__NotApprovedForMarketplace();
 error NftMarketplace__ItemAlreadyListened(address nftAddress, uint256 tokenId);
 error NftMarketplace__NotOwners();
+error NftMarketplace__NotListed(address _nftAddress, uint256 _tokenId);
+error NftMarketplace__PriceNotMet(address _nftAddress, uint256 _tokenId, uint256 itemPrice);
 
-contract NftMarketplace {
+contract NftMarketplace is ReentrancyGuard{ 
     struct Listing {
         uint256 price;
         address seller;
     }
+
     mapping(address => mapping(uint256 => Listing)) private s_listings;
+    mapping(address => uint256) private s_proceeds;
 
     event ItemListed(
         address indexed seller,
+        address indexed nftAddress,
+        uint256 indexed tokenId,
+        uint256 price
+    );
+
+    event ItemBought(
+        address indexed buyer,
         address indexed nftAddress,
         uint256 indexed tokenId,
         uint256 price
@@ -35,6 +47,19 @@ contract NftMarketplace {
         }
         _;
     }
+
+    modifier isListed(
+        address _nftAddress,
+        uint256 _tokenId, 
+    ) {
+        Listing memory listing = s_listings[_nftAddress][_tokenId];
+        
+        if (listing.price <= 0) {
+            revert NftMarketplace__NotListed(_nftAddress, _tokenId);
+        }
+        _;
+    }
+
     modifier isOwner(
         address _nftAddress,
         uint256 _tokenId,
@@ -78,4 +103,21 @@ contract NftMarketplace {
         s_listings[_nftAddress][_tokenId] = Listing(_price, msg.sender);
         emit ItemListed(msg.sender, _nftAddress, _tokenId, _price);
     }
+
+    function buyItem(
+        address _nftAddress,
+        uint256 _tokenId,
+        uint256 _price
+    )
+        external
+        payable nonReentrant isListed(_nftAddress, _tokenId) {
+             Listing memory listing = s_listings[_nftAddress][_tokenId];
+             if(msg.value < listing.price ){
+                revert NftMarketplace__PriceNotMet(_nftAddress, _tokenId, listing.price )
+             }
+             s_proceeds[listing.seller] = s_proceeds[listing.seller] + msg.value;
+             delete(s_listings[_nftAddress][_tokenId]);
+             IERC721(_nftAddress).safeTransferFrom(listing.seller, msg.sender, _tokenId)
+             emit ItemBought(msg.sender, _nftAddress, _tokenId, listing.price)
+        }
 }
