@@ -120,7 +120,7 @@ contract NftMarketplace is ReentrancyGuard{
      * @param _tokenId: ID of the NFT
      * @param _price: Sale price of the NFT
      * @dev Find the item in the listing and send the NFT to the buyer and 
-     * the ETH to the seller.
+     * update the proceeds of the seller.
     */
     function buyItem(
         address _nftAddress,
@@ -141,7 +141,14 @@ contract NftMarketplace is ReentrancyGuard{
              IERC721(_nftAddress).safeTransferFrom(listing.seller, msg.sender, _tokenId)
              emit ItemBought(msg.sender, _nftAddress, _tokenId, listing.price)
         }
-    
+
+    /*
+     * @notice Method for listing your NFT on the marketplace
+     * @param _nftAddress: Address of the NFT
+     * @param _tokenId: ID of the NFT
+     * @param _price: Sale price of the NFT
+     * @dev Cancel the listing
+    */
     function cancelListing(
         address _nftAddress,
         uint256 _tokenId,
@@ -155,6 +162,13 @@ contract NftMarketplace is ReentrancyGuard{
 
         }
 
+    /*
+     * @notice Method for listing your NFT on the marketplace
+     * @param _nftAddress: Address of the NFT
+     * @param _tokenId: ID of the NFT
+     * @param _newPrice: New sale price of the NFT
+     * @dev Find the item in the listing and update the price of it.
+    */
     function updateListing(
         address _nftAddress,
         uint256 _tokenId,
@@ -168,6 +182,13 @@ contract NftMarketplace is ReentrancyGuard{
             emit ItemListed(msg.sender, _nftAddress, _tokenId, _newPrice);
         }
 
+    /*
+     * @notice Method for listing your NFT on the marketplace
+     * @param _nftAddress: Address of the NFT
+     * @param _tokenId: ID of the NFT
+     * @param _price: Sale price of the NFT
+     * @dev Pay the proceeds to the NFTs seller.
+    */
     function withdrawProceeds(
         address _nftAddress,
         uint256 _tokenId,
