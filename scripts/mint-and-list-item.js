@@ -30,6 +30,7 @@ async function mintAndList() {
             deployer
         )
     }
+
     console.log("Minting NFT...")
     const mintTx = await basicNft.mintNft()
     const mintTxReceipt = await mintTx.wait(1)

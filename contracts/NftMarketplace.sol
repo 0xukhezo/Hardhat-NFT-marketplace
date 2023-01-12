@@ -214,7 +214,7 @@ contract NftMarketplace is ReentrancyGuard {
     ) external view returns (Listing memory) {
         return s_listings[_nftAddress][_tokenId];
     }
-
+    
     function getProceeds(address _seller) external view returns (uint256) {
         return s_proceeds[_seller];
     }
