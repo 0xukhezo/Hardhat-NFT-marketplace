@@ -15,13 +15,21 @@ async function mintAndList() {
         nftMarketplaceContractAddress.NftMarketplace.address,
         deployer
     )
-
-    let basicNft = await ethers.getContractAt(
-        "BasicNft",
-        basicNftContractAddress.BasicNft.address,
-        deployer
-    )
-
+    const randomNumber = Math.floor(Math.random() * 2)
+    let basicNft
+    if (randomNumber == 1) {
+        basicNft = await ethers.getContractAt(
+            "BasicNftTwo",
+            basicNftContractAddress.BasicNft.address,
+            deployer
+        )
+    } else {
+        basicNft = await ethers.getContractAt(
+            "BasicNft",
+            basicNftContractAddress.BasicNft.address,
+            deployer
+        )
+    }
     console.log("Minting NFT...")
     const mintTx = await basicNft.mintNft()
     const mintTxReceipt = await mintTx.wait(1)
