@@ -7,6 +7,8 @@ const FRONT_END_NFTMARKETPLACE_ABI_FILE_PATH =
     "../Hardhat-NFT-web/constants/marketplaceAbi.json"
 const FRONT_END_BASICNFT_ABI_FILE_PATH =
     "../Hardhat-NFT-web/constants/basicNftAbi.json"
+const FRONT_END_SHIVANFT_ABI_FILE_PATH =
+    "../Hardhat-NFT-web/constants/shivaNftAbi.json"
 
 module.exports = async () => {
     if (process.env.UPDATE_FRONT_END) {
@@ -27,6 +29,11 @@ async function updateAbi() {
     fs.writeFileSync(
         FRONT_END_BASICNFT_ABI_FILE_PATH,
         JSON.stringify(basicNft.abi)
+    )
+    const shivaNft = await artifacts.readArtifact("BasicNftTwo")
+    fs.writeFileSync(
+        FRONT_END_SHIVANFT_ABI_FILE_PATH,
+        JSON.stringify(shivaNft.abi)
     )
 }
 
@@ -87,6 +94,29 @@ async function updateContractAddresses() {
         ) {
             frontEndFile[chainId]["BasicNft"].push(
                 basicNftContractDeployedAddress
+            )
+        }
+    }
+
+    fs.writeFileSync(
+        FRONT_END_ADDRESSES_FILE_PATH,
+        JSON.stringify(frontEndFile)
+    )
+
+    const DEPLOYED_SHIVANFT_ADDRESS_FILE = `deployments/${chainIdNetwork}/BasicNftTwo.json`
+
+    const shivaNftContractDeployedAddress = JSON.parse(
+        fs.readFileSync(DEPLOYED_SHIVANFT_ADDRESS_FILE, "utf8")
+    ).address
+
+    if (chainId in frontEndFile) {
+        if (
+            !frontEndFile[chainId]["ShivaNft"].includes(
+                shivaNftContractDeployedAddress
+            )
+        ) {
+            frontEndFile[chainId]["ShivaNft"].push(
+                shivaNftContractDeployedAddress
             )
         }
     }
