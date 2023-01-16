@@ -1,7 +1,7 @@
 const { network } = require("hardhat")
 const fs = require("fs")
 
-const FRONT_END_NFTMARKETPLACE_ADDRESSES_FILE_PATH =
+const FRONT_END_ADDRESSES_FILE_PATH =
     "../Hardhat-NFT-web/constants/networkMapping.json"
 const FRONT_END_NFTMARKETPLACE_ABI_FILE_PATH =
     "../Hardhat-NFT-web/constants/marketplaceAbi.json"
@@ -44,61 +44,56 @@ async function updateContractAddresses() {
     }
 
     const DEPLOYED_MARKETPLACE_ADDRESS_FILE = `deployments/${chainIdNetwork}/NftMarketplace.json`
-    const DEPLOYED_BASICNFT_ADDRESS_FILE = `deployments/${chainIdNetwork}/BasicNft.json`
 
     const nftMarketplaceContractDeployedAddress = JSON.parse(
         fs.readFileSync(DEPLOYED_MARKETPLACE_ADDRESS_FILE, "utf8")
+    ).address
+
+    const frontEndFile = JSON.parse(
+        fs.readFileSync(FRONT_END_ADDRESSES_FILE_PATH, "utf8")
     )
+
+    if (chainId in frontEndFile) {
+        if (
+            !frontEndFile[chainId]["NftMarketplace"].includes(
+                nftMarketplaceContractDeployedAddress
+            )
+        ) {
+            frontEndFile[chainId]["NftMarketplace"].push(
+                nftMarketplaceContractDeployedAddress
+            )
+        }
+    } else {
+        frontEndFile[chainId] = {
+            NftMarketplace: [nftMarketplaceContractDeployedAddress],
+        }
+    }
+    fs.writeFileSync(
+        FRONT_END_ADDRESSES_FILE_PATH,
+        JSON.stringify(frontEndFile)
+    )
+
+    const DEPLOYED_BASICNFT_ADDRESS_FILE = `deployments/${chainIdNetwork}/BasicNft.json`
+
     const basicNftContractDeployedAddress = JSON.parse(
         fs.readFileSync(DEPLOYED_BASICNFT_ADDRESS_FILE, "utf8")
-    )
+    ).address
 
-    const nftMarketplaceContractAddresses = JSON.parse(
-        fs.readFileSync(FRONT_END_NFTMARKETPLACE_ADDRESSES_FILE_PATH, "utf8")
-    )
-    const basicNftContractAddresses = JSON.parse(
-        fs.readFileSync(FRONT_END_NFTMARKETPLACE_ADDRESSES_FILE_PATH, "utf8")
-    )
-
-    if (chainId in nftMarketplaceContractAddresses) {
+    if (chainId in frontEndFile) {
         if (
-            !nftMarketplaceContractAddresses[chainId][
-                "nftMarketplace"
-            ].includes(nftMarketplaceContractDeployedAddress.address)
-        ) {
-            nftMarketplaceContractAddresses[chainId]["nftMarketplace"].push(
-                nftMarketplaceContractDeployedAddress.address
+            !frontEndFile[chainId]["BasicNft"].includes(
+                basicNftContractDeployedAddress
             )
-        }
-    } else {
-        nftMarketplaceContractAddresses[chainId] = {
-            NftMarketplace: [nftMarketplaceContractDeployedAddress.address],
+        ) {
+            frontEndFile[chainId]["BasicNft"].push(
+                basicNftContractDeployedAddress
+            )
         }
     }
 
-    if (chainId in basicNftContractAddresses) {
-        if (
-            !basicNftContractAddresses[chainId]["basicNft"].includes(
-                nftMarketplaceContractDeployedAddress.address
-            )
-        ) {
-            basicNftContractAddresses[chainId]["basicNft"].push(
-                nftMarketplaceContractDeployedAddress.address
-            )
-        }
-    } else {
-        basicNftContractAddresses[chainId] = {
-            NftMarketplace: [nftMarketplaceContractDeployedAddress.address],
-        }
-    }
     fs.writeFileSync(
-        FRONT_END_NFTMARKETPLACE_ADDRESSES_FILE_PATH,
-        JSON.stringify(nftMarketplaceContractAddresses)
-    )
-    fs.writeFileSync(
-        FRONT_END_NFTMARKETPLACE_ADDRESSES_FILE_PATH,
-
-        JSON.stringify(basicNftContractAddresses)
+        FRONT_END_ADDRESSES_FILE_PATH,
+        JSON.stringify(frontEndFile)
     )
 }
 module.exports.tags = ["all", "frontend"]
